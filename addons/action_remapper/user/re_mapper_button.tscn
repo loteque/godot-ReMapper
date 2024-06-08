@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7rtq80rm3hoy"]
+
+[ext_resource type="Script" path="res://addons/action_remapper/user/ReMapperButton.gd" id="1_qu0f7"]
+
+[node name="ReMapperButton" type="Button"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 31.0
+grow_horizontal = 2
+toggle_mode = true
+text = "move_up | W "
+script = ExtResource("1_qu0f7")
+show_action_str = true
+show_seperator = true
+show_wait_str = true
+show_button_str = null
+wait_notify_str = "..."
+seperator_str = " |"
+action_option_str = "move_up"
