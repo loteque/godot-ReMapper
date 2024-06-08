@@ -1,63 +1,91 @@
 @tool
 extends Button
-class_name ReMapperButton
 
-@export var show_action_str: bool:
+# button configuration
+@export var show_action_str: bool = true:
     set(value):
         show_action_str = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
 
-@export var show_seperator: bool:
+@export var show_seperator: bool = true:
     set(value):
         show_seperator = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
 
-@export var show_wait_str: bool:
+@export var show_wait_str: bool = true:
     set(value):
         show_wait_str = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
 
-@export var show_button_str: bool:
+@export var show_button_str: bool = true:
     set(value):
         show_button_str = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
 
-@export var wait_notify_str: String:
+@export var wait_notify_str: String = "...":
     set(value):
         wait_notify_str = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
 
-@export var seperator_str: String:
+@export var seperator_str: String = "|":
     set(value):
         seperator_str = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
 
-var action_option_str: String:
+
+# action key stuff
+var _action_option_str: String:
     set(value):
-        action_option_str = value
+        _action_option_str = value
         if Engine.is_editor_hint():
-            text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
+            text = generate_button_string(
+                _action_option_str, 
+                seperator_str, 
+                get_action_key_str(_action_option_str)
+            )
         else:
-            option_updated.emit("action_option_str", action_option_str)
+            option_updated.emit("_action_option_str", _action_option_str)
         notify_property_list_changed()
 
-var actions_array: Array[StringName]
-var actions_str: String = ""
-
-## emmited when player updates an action option
-## with a option name String and an option value Variant
+## Emmited when an action option is updated.
+## Emmitied with args for an option name String 
+## and an option value Variant.
 signal option_updated(option_str: String, option_value: Variant)
 
 
 func compile_actions_str():
 
-    actions_str = ""
+    var actions_str = ""
 
     var delimiter: String = ","
 
@@ -69,29 +97,31 @@ func compile_actions_str():
         actions_str = actions_str + actions_partial
 
     actions_str = actions_str.left(actions_str.length() - 1)
-
+    return actions_str
 
 func _init():
     
+    # action key stuff
     InputMap.load_from_project_settings()
     
+    # button stuff
     toggle_mode = true
     toggled.connect(_on_toggled)
-    
-    compile_actions_str()
 
 
 func _ready():
     
+    # button stuff
     set_process_unhandled_key_input(false)
 
 
+# action key stuff
 func _get_property_list():
-
+    var actions_str = compile_actions_str()
     var properties: Array[Dictionary]
 	
     properties.append({
-		"name": "action_option_str",
+		"name": "_action_option_str",
 		"type": TYPE_STRING,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": actions_str
@@ -108,7 +138,7 @@ func get_action_key_str(action_str_name: String) -> String:
         action_key_str = action_key_str.replace("(Physical)", "")
     return action_key_str
 
-
+# Button Stuff
 func generate_button_string(action: String, seperator: String, key: String) -> String:
     action = action.capitalize()
     var button_string_array: Array[String] = [action, seperator, key]
@@ -123,7 +153,12 @@ func generate_button_string(action: String, seperator: String, key: String) -> S
     if !show_button_str:
         button_string_array[2] = ""
     
-    button_string = button_string_array[0] + button_string_array[1] + " " + button_string_array[2]
+    button_string =  ( 
+        button_string_array[0] 
+        + button_string_array[1] 
+        + " " 
+        + button_string_array[2]
+    )
 
     return button_string
 
@@ -136,7 +171,7 @@ func _on_toggled(toggled_on):
         show_button_str = false
         text = (
             generate_button_string(
-                action_option_str, 
+                _action_option_str, 
                 seperator_str, 
                 ""
             )
@@ -150,9 +185,9 @@ func _unhandled_key_input(event):
     set_pressed(false)
     text = (
         generate_button_string(
-            action_option_str, 
+            _action_option_str, 
             seperator_str, 
-            get_action_key_str(action_option_str)
+            get_action_key_str(_action_option_str)
         )
     )
 
@@ -160,5 +195,5 @@ func _unhandled_key_input(event):
 
 func remap_key(event):
     
-    InputMap.action_erase_events(action_option_str)
-    InputMap.action_add_event(action_option_str, event)
+    InputMap.action_erase_events(_action_option_str)
+    InputMap.action_add_event(_action_option_str, event)
