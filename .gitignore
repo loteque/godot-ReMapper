@@ -2,3 +2,5 @@ docs/
 demo/
 
 .godot/
+
+*.import

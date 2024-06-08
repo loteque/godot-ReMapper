@@ -75,6 +75,7 @@ func _init():
     
     InputMap.load_from_project_settings()
     
+    toggle_mode = true
     toggled.connect(_on_toggled)
     
     compile_actions_str()
@@ -109,6 +110,7 @@ func get_action_key_str(action_str_name: String) -> String:
 
 
 func generate_button_string(action: String, seperator: String, key: String) -> String:
+    action = action.capitalize()
     var button_string_array: Array[String] = [action, seperator, key]
     var button_string:String = ""
     
@@ -129,14 +131,31 @@ func generate_button_string(action: String, seperator: String, key: String) -> S
 func _on_toggled(toggled_on):
     
     set_process_unhandled_key_input(toggled_on)
-    text = generate_button_string(action_option_str, seperator_str, get_action_key_str(action_option_str))
-
+    
+    if toggled_on:
+        show_button_str = false
+        text = (
+            generate_button_string(
+                action_option_str, 
+                seperator_str, 
+                ""
+            )
+            + wait_notify_str
+        )
 
 func _unhandled_key_input(event):
     
+    show_button_str = true
     remap_key(event)
     set_pressed(false)
-    text = action_option_str.capitalize() + " | " + get_action_key_str(action_option_str)
+    text = (
+        generate_button_string(
+            action_option_str, 
+            seperator_str, 
+            get_action_key_str(action_option_str)
+        )
+    )
+
     print(str(event))
 
 func remap_key(event):
