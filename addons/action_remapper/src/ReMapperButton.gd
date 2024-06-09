@@ -3,7 +3,6 @@ extends Button
 
 var actions_property: ActionsProperty
 
-var editor_save: Array[Dictionary]
 var option_symbol: Grumblex.Symbol
 var option: String:
     get:
@@ -87,13 +86,9 @@ func _init():
     option_symbol.updated.connect(_on_option_updated)
     actions_property = ActionsProperty.new()
 
-    if Engine.is_editor_hint():
-        var key_str = actions_property.get_action_key_str(editor_save[0].value)
-        text = generate_button_string(
-            option, 
-            seperator_str, 
-            key_str
-        )
+func _ready():
+    
+    set_process_unhandled_key_input(false)
 
 
 
@@ -106,10 +101,6 @@ func _on_option_updated(_symbol, value):
             actions_property.get_action_key_str(value)
         )
     )
-
-func _ready():
-    
-    set_process_unhandled_key_input(false)
 
 
 func _get_property_list():
@@ -172,10 +163,6 @@ func _unhandled_key_input(event):
     
     show_button_str = true
     actions_property.remap_key(option, event)
-    editor_save = [{
-        "symbol": option_symbol.symbol,
-        "value": option
-        }]
     
     set_pressed(false)
     text = (
