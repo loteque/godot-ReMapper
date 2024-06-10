@@ -16,7 +16,7 @@ class ActionString:
     func _init() -> void:
         InputMap.load_from_project_settings()
 
-    func compile_actions_str():
+    static func compile_actions_str():
 
         var actions_str = ""
 
@@ -32,16 +32,44 @@ class ActionString:
         actions_str = actions_str.left(actions_str.length() - 1)
         return actions_str
 
-func get_action_key_str(action_str_name: String) -> String:
-    var action_key_str: String = ""
-    var input_events: Array[InputEvent] = InputMap.action_get_events(action_str_name)
-    if input_events:
-        action_key_str = input_events[0].as_text()
-        action_key_str = action_key_str.replace("(Physical)", "")
-    return action_key_str
+
+class KeyBoard:
 
 
-func remap_key(option_string: String, event:InputEvent) -> void:
-    
-    InputMap.action_erase_events(option_string)
-    InputMap.action_add_event(option_string, event)
+    signal updated()
+    var set_allowed: bool = false
+    var key: String = "":
+        get:
+            if key == "":
+                push_warning("key is empty String")
+            return key
+        set(value):
+            if !set_allowed:
+                push_warning("'set' not allowed; use 'set_key_from_inputmap()'")
+            else:
+                key = value
+                updated.emit()
+
+
+    func set_key_from_inputmap(action_str: String):
+        set_allowed = true
+        var _key = ""
+        var input_events: Array[InputEvent] = InputMap.action_get_events(action_str)
+        if input_events:
+            _key = input_events[0].as_text()
+            _key = _key.replace("(Physical)", "")
+        key = _key
+
+    static func get_key_from_inputmap(action_str: String) -> String:
+        var _key = ""
+        var input_events: Array[InputEvent] = InputMap.action_get_events(action_str)
+        if input_events:
+            _key = input_events[0].as_text()
+            _key = _key.replace("(Physical)", "")              
+        return _key
+
+    func remap_key(action_str: String, event:InputEvent) -> String:
+        InputMap.action_erase_events(action_str)
+        InputMap.action_add_event(action_str, event)
+        set_key_from_inputmap(action_str)
+        return key

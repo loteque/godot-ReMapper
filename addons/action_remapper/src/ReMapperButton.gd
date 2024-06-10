@@ -1,79 +1,79 @@
 @tool
 extends Button
 
-var actions_property: ActionsProperty
+var kb = ActionsProperty.KeyBoard
 
-var option_symbol: Grumblex.Symbol
-var option: String:
+var action_symbol: Grumblex.Symbol
+var action: String:
     get:
-        return option_symbol.value
+        return action_symbol.value
     set(value):
-        option_symbol.value = value
+        action_symbol.value = value
 
 @export var show_action_str: bool = true:
     set(value):
         show_action_str = value
         if Engine.is_editor_hint():
-            var key_str = actions_property.get_action_key_str(option_symbol.value)
+            var key = kb.key
             text = generate_button_string(
-                option_symbol.value, 
+                action, 
                 seperator_str, 
-                key_str
+                key
             )
 
 @export var show_seperator: bool = true:
     set(value):
         show_seperator = value
         if Engine.is_editor_hint():
-            var key_str = actions_property.get_action_key_str(option_symbol.value)
+            var key = kb.key
             text = generate_button_string(
-                option_symbol.value, 
+                action, 
                 seperator_str, 
-                key_str
+                key
             )
 
 @export var show_wait_str: bool = true:
     set(value):
         show_wait_str = value
         if Engine.is_editor_hint():
-            var key_str = actions_property.get_action_key_str(option_symbol.value)
+            var key = kb.key
             text = generate_button_string(
-                option_symbol.value, 
+                action, 
                 seperator_str, 
-                key_str
+                key
             )
 
 @export var show_button_str: bool = true:
     set(value):
         show_button_str = value
         if Engine.is_editor_hint():
-            var key_str = actions_property.get_action_key_str(option_symbol.value)
+            var key = kb.key
             text = generate_button_string(
-                option_symbol.value, 
+                action, 
                 seperator_str, 
-                key_str
+                key
             )
 
 @export var wait_notify_str: String = "...":
     set(value):
         wait_notify_str = value
         if Engine.is_editor_hint():
-            var key_str = actions_property.get_action_key_str(option_symbol.value)
+            var key = kb.key
             text = generate_button_string(
-                option_symbol.value, 
+                action, 
                 seperator_str, 
-                key_str
+                key
             )
 
 @export var seperator_str: String = "|":
     set(value):
         seperator_str = value
         if Engine.is_editor_hint():
-            var key_str = actions_property.get_action_key_str(option_symbol.value)
+            var key = kb.key
             text = generate_button_string(
-                option_symbol.value, 
+                action, 
                 seperator_str, 
-                key_str
+                key
             )
 
 
@@ -82,29 +82,35 @@ func _init():
     toggle_mode = true
     toggled.connect(_on_toggled)
 
-    option_symbol = Grumblex.Symbol.new(&"option")
-    option_symbol.updated.connect(_on_option_updated)
-    actions_property = ActionsProperty.new()
+    action_symbol = Grumblex.Symbol.new(&"action")
+    action_symbol.updated.connect(_on_action_updated)
+
+    kb = ActionsProperty.KeyBoard.new()
+    kb.set_key_from_inputmap(action)
+
 
 func _ready():
     
     set_process_unhandled_key_input(false)
 
 
-
-func _on_option_updated(_symbol, value):
+func _on_action_updated(_symbol, value):
+    
     print("Button; signal recieved: " + value)
+    kb.set_key_from_inputmap(value)
+    var key = kb.key
+    
     text = (
         generate_button_string(
             value, 
             seperator_str, 
-            actions_property.get_action_key_str(value)
+            key
         )
     )
 
 
 func _get_property_list():
-
+    
     var actions_str = ActionsProperty.ActionString.new()
     var hint_string: String = actions_str.value
     var prop_type: int = TYPE_STRING
@@ -112,7 +118,7 @@ func _get_property_list():
     var properties = []
     
     properties.append({
-		"name": option_symbol.symbol,
+		"name": action_symbol.symbol,
 		"type": prop_type,
 		"hint": prop_hint,
 		"hint_string": hint_string
@@ -152,7 +158,7 @@ func _on_toggled(toggled_on):
         show_button_str = false
         text = (
             generate_button_string(
-                option, 
+                action, 
                 seperator_str, 
                 ""
             )
@@ -160,18 +166,15 @@ func _on_toggled(toggled_on):
         )
 
 func _unhandled_key_input(event):
-    
     show_button_str = true
-    actions_property.remap_key(option, event)
-    
+    var key = kb.remap_key(action, event)
+    # await kb.updated
+
     set_pressed(false)
     text = (
         generate_button_string(
-            option, 
+            action, 
             seperator_str, 
-            actions_property.get_action_key_str(option)
+            key
         )
     )
-
-    print(str(event))
-
