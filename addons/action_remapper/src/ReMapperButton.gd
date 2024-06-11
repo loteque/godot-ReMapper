@@ -1,7 +1,8 @@
 @tool
 extends Button
 
-var kb = ActionsProperty.KeyBoard
+var dev = ActionsProperty.Device
+
 
 var action_symbol: Grumblex.Symbol
 var action: String:
@@ -10,11 +11,13 @@ var action: String:
     set(value):
         action_symbol.value = value
 
+signal panel_option_updated(option_value, input)
+
 @export var show_action_str: bool = true:
     set(value):
         show_action_str = value
         if Engine.is_editor_hint():
-            var key = kb.key
+            var key = dev.key
             text = generate_button_string(
                 action, 
                 seperator_str, 
@@ -25,7 +28,7 @@ var action: String:
     set(value):
         show_seperator = value
         if Engine.is_editor_hint():
-            var key = kb.key
+            var key = dev.key
             text = generate_button_string(
                 action, 
                 seperator_str, 
@@ -36,7 +39,7 @@ var action: String:
     set(value):
         show_wait_str = value
         if Engine.is_editor_hint():
-            var key = kb.key
+            var key = dev.key
             text = generate_button_string(
                 action, 
                 seperator_str, 
@@ -47,7 +50,7 @@ var action: String:
     set(value):
         show_button_str = value
         if Engine.is_editor_hint():
-            var key = kb.key
+            var key = dev.key
             text = generate_button_string(
                 action, 
                 seperator_str, 
@@ -58,7 +61,7 @@ var action: String:
     set(value):
         wait_notify_str = value
         if Engine.is_editor_hint():
-            var key = kb.key
+            var key = dev.key
             text = generate_button_string(
                 action, 
                 seperator_str, 
@@ -69,7 +72,7 @@ var action: String:
     set(value):
         seperator_str = value
         if Engine.is_editor_hint():
-            var key = kb.key
+            var key = dev.key
             text = generate_button_string(
                 action, 
                 seperator_str, 
@@ -79,32 +82,33 @@ var action: String:
 
 func _init():
 
+    panel_option_updated.connect(_on_panel_value_updated)
+
     toggle_mode = true
     toggled.connect(_on_toggled)
 
     action_symbol = Grumblex.Symbol.new(&"action")
     action_symbol.updated.connect(_on_action_updated)
 
-    kb = ActionsProperty.KeyBoard.new()
-    kb.set_key_from_inputmap(action)
-
+    dev = ActionsProperty.Device.new()
+    dev.set_input_from_inputmap(action)
 
 func _ready():
     
-    set_process_unhandled_key_input(false)
+    set_process_unhandled_input(false)
 
 
 func _on_action_updated(_symbol, value):
     
     print("Button; signal recieved: " + value)
-    kb.set_key_from_inputmap(value)
-    var key = kb.key
+    dev.set_input_from_inputmap(value)
+    var input = dev.input
     
     text = (
         generate_button_string(
             value, 
             seperator_str, 
-            key
+            input
         )
     )
 
@@ -126,9 +130,10 @@ func _get_property_list():
 
     return properties
 
-func generate_button_string(action: String, seperator: String, key: String) -> String:
+func generate_button_string(action: String, seperator: String, input: String) -> String:
+    
     action = action.capitalize()
-    var button_string_array: Array[String] = [action, seperator, key]
+    var button_string_array: Array[String] = [action, seperator, input]
     var button_string:String = ""
     
     if !show_action_str:
@@ -150,10 +155,23 @@ func generate_button_string(action: String, seperator: String, key: String) -> S
     return button_string
 
 
+func set_button_text(action: String, seperator: String, input: String):
+
+    text = generate_button_string(
+        action, 
+        seperator_str, 
+        input
+    )
+
+
+func _on_panel_value_updated(option_value, input):
+    set_button_text(action, seperator_str, input)
+
 func _on_toggled(toggled_on):
     
     set_process_unhandled_key_input(toggled_on)
-    
+    set_process_unhandled_input(toggled_on)
+
     if toggled_on:
         show_button_str = false
         text = (
@@ -165,16 +183,31 @@ func _on_toggled(toggled_on):
             + wait_notify_str
         )
 
-func _unhandled_key_input(event):
-    show_button_str = true
-    var key = kb.remap_key(action, event)
-    # await kb.updated
 
-    set_pressed(false)
-    text = (
-        generate_button_string(
-            action, 
-            seperator_str, 
-            key
+func _unhandled_input(event):
+    
+    var remamp_and_update_button = func():
+        
+        var button = dev.remap_input(action, event)
+
+        text = (
+            generate_button_string(
+                action, 
+                seperator_str, 
+                button
+            )
         )
-    )
+    
+    set_pressed(false)
+
+    show_button_str = true
+
+    if event is InputEventMouseButton:
+        remamp_and_update_button.call()
+    
+    if event is InputEventKey:
+        remamp_and_update_button.call()
+
+    if event is InputEventJoypadButton:
+        remamp_and_update_button.call()
+
