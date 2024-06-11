@@ -1,6 +1,11 @@
+.project.godot
+.gitignore
+.godot/
+.import/
+.import
+.demo/
+.docs/
+*.import
 docs/
 demo/
-
-.godot/
-
-*.import
+project.godot
